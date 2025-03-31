@@ -3,8 +3,10 @@ from aiogram.filters import Command
 from aiogram.types import BufferedInputFile, CallbackQuery, FSInputFile, Message
 
 from .gpt_module import ChatGPT
+from .middlewares import AccessMiddleware
 
 router = Router()
+router.message.middleware(AccessMiddleware())
 
 
 @router.message(Command("start"))
