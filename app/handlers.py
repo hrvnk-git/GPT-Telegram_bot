@@ -1,12 +1,13 @@
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
-from aiogram.types import BufferedInputFile, CallbackQuery, FSInputFile, Message
+from aiogram.types import Message
 
 from .gpt_module import ChatGPT
-from .middlewares import AccessMiddleware
+from .middlewares import AccessMiddleware, ProcessingLockMiddleware
 
 router = Router()
 router.message.middleware(AccessMiddleware())
+router.message.middleware(ProcessingLockMiddleware())
 
 
 @router.message(Command("start"))
@@ -15,22 +16,18 @@ async def cmd_start(message: Message):
 
 
 @router.message(F.text)
-async def any_message(message: Message):
+async def any_message(message: Message, bot: Bot):
+    await bot.send_chat_action(message.chat.id, action="typing")
     answer = await ChatGPT().generate_text(message.text)
-    await message.answer(answer)  # type: ignore
+    await message.answer(answer, parse_mode="Markdown")
 
 
-# @router.message(Command("voice"))
-# async def send_voice_message(message: Message):
-# file_id = message.voice.file_id # type: ignore
-# file = await bot.get_file(file_id)
-# file_path = file.file_path
-# await bot.download_file(file_path, "text.ogg") # type: ignore
-# input_file = ffmpeg.input("text.ogg")
-# output_file = ffmpeg.output(input_file, "text.mp3", acodec="mp3", f="mp3")
-# ffmpeg.run(output_file, overwrite_output=True)
-# voice = open("text.mp3", "rb")
-# # async with aiofiles.open("text.mp3", "rb") as voice:
-# await ChatGPT().generate_voice()
-# voice.close()
-# await message.answer_document(context)
+@router.message(F.voice)
+async def send_voice_message(message: Message, bot: Bot):
+    await bot.send_chat_action(message.chat.id, action="record_voice")
+    file_link = await bot.get_file(message.voice.file_id)  # type: ignore
+    await bot.download_file(file_link.file_path, "voice.ogg")  # type: ignore
+    voice_file = open("voice.ogg", "rb")
+    voice, answer = await ChatGPT().generate_voice(voice_file)
+    await message.answer_voice(voice)
+    await message.answer(answer, parse_mode="Markdown")

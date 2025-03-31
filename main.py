@@ -10,11 +10,11 @@ from app.handlers import router
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = str(os.getenv("BOT_TOKEN"))
 
 
 async def main():
-    bot = Bot(token=BOT_TOKEN)  # type: ignore
+    bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
     await dp.start_polling(bot)

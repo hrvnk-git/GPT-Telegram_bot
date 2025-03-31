@@ -175,3 +175,7 @@ cython_debug/
 
 
 .DS_Store
+message_history.json
+*.mp3
+*.ogg
+*.pcm
