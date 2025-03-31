@@ -9,7 +9,7 @@ router = Router()
 
 @router.message(Command("start"))
 async def cmd_start(message: Message):
-    await message.answer("Привет! Напиши мне что-нибудь")
+    await message.answer("Привет! Спрашивай что угодно!")
 
 
 @router.message(F.text)

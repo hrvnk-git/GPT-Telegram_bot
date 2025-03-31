@@ -2,20 +2,19 @@ import asyncio
 import logging
 import os
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
+from dotenv import load_dotenv
 
 from app.handlers import router
+
+load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
 async def main():
-    bot = Bot(token=BOT_TOKEN)
+    bot = Bot(token=BOT_TOKEN)  # type: ignore
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
     await dp.start_polling(bot)

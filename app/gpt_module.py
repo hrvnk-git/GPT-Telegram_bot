@@ -3,9 +3,10 @@ import os
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
+from config import prompt
+
 load_dotenv()
 
-from config import prompt
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
