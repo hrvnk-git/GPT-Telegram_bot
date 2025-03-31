@@ -179,3 +179,4 @@ message_history.json
 *.mp3
 *.ogg
 *.pcm
+*.db
