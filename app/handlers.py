@@ -1,7 +1,7 @@
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
 from aiogram.types import BufferedInputFile, CallbackQuery, FSInputFile, Message
-from gpt_module import ChatGPT
+from .gpt_modulegpt_module import ChatGPT
 
 router = Router()
 
