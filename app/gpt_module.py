@@ -1,10 +1,13 @@
-from os import getenv
+import os
 
+from dotenv import load_dotenv
 from openai import AsyncOpenAI
+
+load_dotenv()
 
 from config import prompt
 
-OPENAI_API_KEY = str(getenv("OPENAI_API_KEY"))
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
 class ChatGPT:
