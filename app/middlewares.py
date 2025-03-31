@@ -9,7 +9,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-AUTHORIZED_USERS_ID = os.getenv("AUTHORIZED_USERS_ID")
+AUTHORIZED_USERS_ID = os.getenv("AUTHORIZED_USERS_ID", "")
+
+
+def get_authorized_users_ids() -> list[int]:
+    return [
+        int(user_id.strip())
+        for user_id in AUTHORIZED_USERS_ID.split(",")
+        if user_id.strip()
+    ]
 
 
 class AccessMiddleware(BaseMiddleware):
@@ -19,10 +27,10 @@ class AccessMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
-        if isinstance(event, Message) and event.from_user.id not in [  # type: ignore
-            int(user_id)
-            for user_id in AUTHORIZED_USERS_ID.split(",")  # type: ignore
-        ]:
+        if (
+            isinstance(event, Message)
+            and event.from_user.id not in get_authorized_users_ids() # type: ignore
+        ):  # type: ignore
             # Если пользователь не авторизован — не передаём управление хендлеру
             await event.answer("Вы не авторизованы для использования этого бота.")
             return
