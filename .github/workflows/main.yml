@@ -1,0 +1,24 @@
+name: GPT bot CD # Название workflow (процесса автоматизации)
+
+on:
+  push:
+    branches: [ main ] # Триггер: запускать workflow при пуше в ветку main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Определение окружения: используется последняя версия Ubuntu
+    steps:
+    - name: Deploy using ssh # Название шага: Деплой с использованием SSH
+      uses: appleboy/ssh-action@master # Использование готового действия для SSH-подключения
+      with:
+        host: ${{ secrets.HOST }} # Хост (сервер) для подключения, берется из секретов Github
+        username: ${{ secrets.USERNAME }} # Имя пользователя для SSH, берется из секретов Github
+        key: ${{ secrets.PRIVATE_KEY }} # Приватный ключ для SSH, берется из секретов Github
+        port: 22 # Порт для SSH-подключения (по умолчанию 22)
+        script: |
+          cd ~/GPT-Telegram_bot # Переход в директорию с проектом на сервере
+          source .venv/bin/activate
+          git pull origin main # Вытягивание последних изменений из ветки main
+          git status # Проверка состояния git-репозитория
+          pip install -r requirements.txt # Установка только продакшн-зависимостей
+          sudo systemctl start GPT-Telegram_bot.service # Перезапуск процесса tg-bot с помощью PM2
