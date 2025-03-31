@@ -70,3 +70,10 @@ class ChatGPT:
             await response.stream_to_file(speech_file_path)
 
         return FSInputFile(speech_file_path), answer
+
+    async def generate_text_on_voice(self, voice):
+        transcript = await self.client.audio.transcriptions.create(
+            model="gpt-4o-mini-transcribe", file=voice
+        )
+        print(transcript.text)
+        return await self.generate_text(transcript.text)
