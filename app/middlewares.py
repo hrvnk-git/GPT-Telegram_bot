@@ -17,8 +17,7 @@ class AccessMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
-        if isinstance(event, Message) and event.from_user.id != AUTHORIZED_USER_ID:
-            print(event.from_user.id)
+        if isinstance(event, Message) and event.from_user.id != int(AUTHORIZED_USER_ID):
             # Если пользователь не авторизован — не передаём управление хендлеру
             return
 
