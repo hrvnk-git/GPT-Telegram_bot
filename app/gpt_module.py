@@ -51,12 +51,11 @@ class ChatGPT:
                         maxlen=max_len
                     )  # Если файл повреждён, просто сбрасываем историю
 
-    async def generate_voice(self, voice) -> tuple[FSInputFile, str]:
+    async def generate_voice(self, voice):
         transcript = await self.client.audio.transcriptions.create(
             model="gpt-4o-mini-transcribe", file=voice
         )
         print(transcript.text)
-        # return await self.generate_text(transcript.text)
         answer = await self.generate_text(transcript.text)
         speech_file_path = Path(__file__).parent / "speech.ogg"
 
