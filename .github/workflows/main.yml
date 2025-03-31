@@ -1,0 +1,24 @@
+name: GPT bot CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Deploy using ssh
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        port: 22
+        script: |
+          cd ~/GPT-Telegram_bot # Переход в директорию с проектом на сервере
+          source .venv/bin/activate
+          git pull origin main # Вытягивание последних изменений из ветки main
+          git status # Проверка состояния git-репозитория
+          pip install -r requirements.txt # Установка только продакшн-зависимостей
+          sudo systemctl start GPT-Telegram_bot.service # Перезапуск процесса tg-bot с помощью PM2
