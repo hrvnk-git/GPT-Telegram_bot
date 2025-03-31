@@ -20,5 +20,5 @@ jobs:
           source .venv/bin/activate
           git pull # Вытягивание последних изменений из ветки main
           git status # Проверка состояния git-репозитория
-          pip install -r requirements.txt # Установка только продакшн-зависимостей
+          # pip install -r requirements.txt # Установка только продакшн-зависимостей
           sudo systemctl start GPT-Telegram_bot.service # Перезапуск процесса tg-bot с помощью PM2
