@@ -10,6 +10,7 @@ from .gpt_module import gpt_client
 from .middlewares import AccessMiddleware, ProcessingLockMiddleware, RateLimitMiddleware
 
 load_dotenv()
+BOT_TOKEN = str(os.getenv("BOT_TOKEN"))
 
 router = Router()
 router.message.middleware(AccessMiddleware())
@@ -50,7 +51,7 @@ async def handle_photo(message: Message, bot: Bot):
     message_text = message.caption or None
     await bot.send_chat_action(message.chat.id, action="typing")
     photo = await bot.get_file(message.photo[-1].file_id)
-    url = f"https://api.telegram.org/file/bot{str(os.getenv("BOT_TOKEN"))}/{photo.file_path}"
+    url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{photo.file_path}"
     answer = await gpt_client.recieve_photo(user_id, message_text, url)
     await message.answer(answer)
 
