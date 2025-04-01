@@ -12,6 +12,7 @@ load_dotenv()
 
 list_of_users = os.getenv("AUTHORIZED_USER_ID")
 AUTHORIZED_USERS_ID = list_of_users.split(",") if list_of_users else []
+print(AUTHORIZED_USERS_ID)
 
 
 class AccessMiddleware(BaseMiddleware):
@@ -21,18 +22,17 @@ class AccessMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
-        for user_id in AUTHORIZED_USERS_ID:
-            if isinstance(event, Message) and event.from_user.id == int(user_id):  # type: ignore
-                        return await handler(event, data)
+        if isinstance(event, Message):
+            if int(event.from_user.id) in [int(uid) for uid in AUTHORIZED_USERS_ID]:
+                return await handler(event, data)
             else:
-                        await event.answer(
-                            "```Ошибка! У вас нет доступа к этому боту.```",
-                            parse_mode="Markdown",
-                        )
-                        # Если пользователь не авторизован — не передаём управление хендлеру
-                        return
-        # Пользователь авторизован — передаём управление дальше
-        
+                await event.answer(
+                    "```Ошибка! У вас нет доступа к этому боту.```",
+                    parse_mode="Markdown",
+                )
+                # Если пользователь не авторизован — не передаём управление хендлеру
+                return
+        return await handler(event, data)
 
 
 # Глобальный Lock, который предотвращает одновременную обработку команд
