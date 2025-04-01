@@ -3,10 +3,13 @@ import os
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
+from dotenv import load_dotenv
 
 from .db import load_user_mode, save_user_mode
 from .gpt_module import gpt_client
 from .middlewares import AccessMiddleware, ProcessingLockMiddleware, RateLimitMiddleware
+
+load_dotenv()
 
 router = Router()
 router.message.middleware(AccessMiddleware())
@@ -37,7 +40,19 @@ async def any_message(message: Message, bot: Bot):
         user_id=message.from_user.id,
         user_text=message.text,
     )
+    # print(answer)
     await message.answer(answer, parse_mode="Markdown")
+
+
+@router.message(F.photo)
+async def handle_photo(message: Message, bot: Bot):
+    user_id = message.from_user.id
+    message_text = message.caption or None
+    await bot.send_chat_action(message.chat.id, action="typing")
+    photo = await bot.get_file(message.photo[-1].file_id)
+    url = f"https://api.telegram.org/file/bot{str(os.getenv("BOT_TOKEN"))}/{photo.file_path}"
+    answer = await gpt_client.recieve_photo(user_id, message_text, url)
+    await message.answer(answer)
 
 
 @router.message(F.voice)

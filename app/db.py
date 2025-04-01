@@ -19,6 +19,12 @@ async def init_db():
                 mode TEXT
             )
         """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS response_ids (
+                user_id INTEGER PRIMARY KEY,
+                response_id TEXT
+            )
+        """)
         await db.commit()
 
 
@@ -61,5 +67,26 @@ async def save_user_mode(user_id: int, mode: str):
     async with aiosqlite.connect(DB_FILE) as db:
         await db.execute(
             "REPLACE INTO user_modes (user_id, mode) VALUES (?, ?)", (user_id, mode)
+        )
+        await db.commit()
+
+
+async def load_response_id(user_id: int) -> str | None:
+    async with aiosqlite.connect(DB_FILE) as db:
+        cursor = await db.execute(
+            "SELECT response_id FROM response_ids WHERE user_id = ?", (user_id,)
+        )
+        row = await cursor.fetchone()
+        if row:
+            return row[0]
+        else:
+            # Значение по умолчанию - None
+            return None
+
+
+async def save_response_id(user_id: int, response_id: str):
+    async with aiosqlite.connect(DB_FILE) as db:
+        await db.execute(
+            "REPLACE INTO response_ids (user_id, response_id) VALUES (?, ?)", (user_id, response_id)
         )
         await db.commit()
