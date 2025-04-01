@@ -74,7 +74,7 @@ class ChatGPT:
         )
         return await self.generate_text(transcript.text, user_id)
 
-    async def recieve_photo(self, user_id: int, message_text: str | None, url: str):
+    async def recieve_photo(self, user_id: int, message_text: str, url: str):
         if message_text:
             message_text = message_text
         else:
