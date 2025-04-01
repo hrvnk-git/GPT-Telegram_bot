@@ -180,3 +180,4 @@ message_history.json
 *.ogg
 *.pcm
 *.db
+temp_voices/
