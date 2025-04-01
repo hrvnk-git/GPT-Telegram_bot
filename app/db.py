@@ -71,7 +71,7 @@ async def save_user_mode(user_id: int, mode: str):
         await db.commit()
 
 
-async def load_response_id(user_id: int) -> str | None:
+async def load_response_id(user_id: int):
     async with aiosqlite.connect(DB_FILE) as db:
         cursor = await db.execute(
             "SELECT response_id FROM response_ids WHERE user_id = ?", (user_id,)
@@ -87,6 +87,7 @@ async def load_response_id(user_id: int) -> str | None:
 async def save_response_id(user_id: int, response_id: str):
     async with aiosqlite.connect(DB_FILE) as db:
         await db.execute(
-            "REPLACE INTO response_ids (user_id, response_id) VALUES (?, ?)", (user_id, response_id)
+            "REPLACE INTO response_ids (user_id, response_id) VALUES (?, ?)",
+            (user_id, response_id),
         )
         await db.commit()
