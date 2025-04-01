@@ -1,5 +1,6 @@
 import os
 from asyncio import Lock
+from re import A
 from time import monotonic
 from typing import Any, Awaitable, Callable, Dict
 
@@ -9,7 +10,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-AUTHORIZED_USER_ID = os.getenv("AUTHORIZED_USER_ID")
+list_of_users = os.getenv("AUTHORIZED_USER_ID")
+AUTHORIZED_USERS_ID = list_of_users.split(",") if list_of_users else []
 
 
 class AccessMiddleware(BaseMiddleware):
@@ -19,16 +21,18 @@ class AccessMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
-        if isinstance(event, Message) and event.from_user.id != int(AUTHORIZED_USER_ID):  # type: ignore
-            await event.answer(
-                "```Ошибка! У вас нет доступа к этому боту.```",
-                parse_mode="Markdown",
-            )
-            # Если пользователь не авторизован — не передаём управление хендлеру
-            return
-
+        for user_id in AUTHORIZED_USERS_ID:
+            if isinstance(event, Message) and event.from_user.id == int(user_id):  # type: ignore
+                        return await handler(event, data)
+            else:
+                        await event.answer(
+                            "```Ошибка! У вас нет доступа к этому боту.```",
+                            parse_mode="Markdown",
+                        )
+                        # Если пользователь не авторизован — не передаём управление хендлеру
+                        return
         # Пользователь авторизован — передаём управление дальше
-        return await handler(event, data)
+        
 
 
 # Глобальный Lock, который предотвращает одновременную обработку команд
