@@ -5,7 +5,7 @@ from aiogram.types import FSInputFile
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
-from app.db import load_history, save_message
+from .db import load_history, save_message
 from config import instructions, prompt
 
 load_dotenv()
@@ -53,3 +53,6 @@ class ChatGPT:
             model="gpt-4o-mini-transcribe", file=voice
         )
         return await self.generate_text(transcript.text, user_id)
+
+
+gpt_client = ChatGPT()

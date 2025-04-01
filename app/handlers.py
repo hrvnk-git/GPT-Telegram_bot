@@ -5,7 +5,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from .db import load_user_mode, save_user_mode
-from .gpt_module import ChatGPT
+from .gpt_module import gpt_client
 from .middlewares import AccessMiddleware, ProcessingLockMiddleware, RateLimitMiddleware
 
 router = Router()
@@ -33,7 +33,7 @@ async def cmd_mode(message: Message):
 @router.message(F.text)
 async def any_message(message: Message, bot: Bot):
     await bot.send_chat_action(message.chat.id, action="typing")
-    answer = await ChatGPT().generate_text(
+    answer = await gpt_client.generate_text(
         user_id=message.from_user.id,
         user_text=message.text,
     )
@@ -56,7 +56,7 @@ async def send_voice_message_on_voice(message: Message, bot: Bot, user_id: int):
     file_link = await bot.get_file(message.voice.file_id)
     await bot.download_file(file_link.file_path, f"{user_id}_voice.ogg")
     with open(f"{user_id}_voice.ogg", "rb") as voice_file:
-        voice, answer = await ChatGPT().generate_voice(
+        voice, answer = await gpt_client.generate_voice(
             user_id=user_id,
             voice=voice_file,
         )
@@ -72,7 +72,7 @@ async def send_text_message_on_voice(message: Message, bot: Bot, user_id: int):
     file_link = await bot.get_file(message.voice.file_id)
     await bot.download_file(file_link.file_path, f"{user_id}_voice.ogg")
     with open(f"{user_id}_voice.ogg", "rb") as voice_file:
-        answer = await ChatGPT().generate_text_on_voice(
+        answer = await gpt_client.generate_text_on_voice(
             user_id=user_id,
             voice=voice_file,
         )
