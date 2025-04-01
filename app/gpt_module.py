@@ -35,9 +35,8 @@ class ChatGPT:
         transcript = await self.client.audio.transcriptions.create(
             model="gpt-4o-mini-transcribe", file=voice
         )
-        print(transcript.text)
         answer = await self.generate_text(transcript.text, user_id)
-        speech_file_path = Path(__file__).parent / f"{user_id}_speech.ogg"
+        speech_file_path = Path(__file__).parent.parent / f"{user_id}_speech.ogg"
         async with self.client.audio.speech.with_streaming_response.create(
             model="gpt-4o-mini-tts",
             voice="shimmer",
@@ -53,5 +52,4 @@ class ChatGPT:
         transcript = await self.client.audio.transcriptions.create(
             model="gpt-4o-mini-transcribe", file=voice
         )
-        print(transcript.text)
         return await self.generate_text(transcript.text, user_id)

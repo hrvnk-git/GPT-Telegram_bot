@@ -1,4 +1,5 @@
-import aiofiles
+import os
+
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -50,27 +51,30 @@ async def handle_voice_message(message: Message, bot: Bot):
         await send_text_message_on_voice(message, bot, user_id)
 
 
-async def send_voice_message_on_voice(message, bot, user_id):
+async def send_voice_message_on_voice(message: Message, bot: Bot, user_id: int):
     await bot.send_chat_action(message.chat.id, action="record_voice")
     file_link = await bot.get_file(message.voice.file_id)
     await bot.download_file(file_link.file_path, f"{user_id}_voice.ogg")
-    async with aiofiles.open(f"{user_id}_voice.ogg", "rb") as voice_file:
+    with open(f"{user_id}_voice.ogg", "rb") as voice_file:
         voice, answer = await ChatGPT().generate_voice(
             user_id=user_id,
             voice=voice_file,
         )
     await message.answer_voice(voice)
+    os.remove(f"{user_id}_voice.ogg")
+    os.remove(f"{user_id}_speech.ogg")
     await message.answer(answer, parse_mode="Markdown")
 
 
-async def send_text_message_on_voice(message, bot, user_id):
+async def send_text_message_on_voice(message: Message, bot: Bot, user_id: int):
     await bot.send_chat_action(message.chat.id, action="typing")
     user_id = message.from_user.id
     file_link = await bot.get_file(message.voice.file_id)
     await bot.download_file(file_link.file_path, f"{user_id}_voice.ogg")
-    async with aiofiles.open(f"{user_id}_voice.ogg", "rb") as voice_file:
+    with open(f"{user_id}_voice.ogg", "rb") as voice_file:
         answer = await ChatGPT().generate_text_on_voice(
             user_id=user_id,
             voice=voice_file,
         )
+    os.remove(f"{user_id}_voice.ogg")
     await message.answer(answer, parse_mode="Markdown")

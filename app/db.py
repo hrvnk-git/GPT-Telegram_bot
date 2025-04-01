@@ -53,8 +53,8 @@ async def load_user_mode(user_id: int) -> str:
         if row:
             return row[0]
         else:
-            # Значение по умолчанию - "Ответ голосом"
-            return "Ответ голосом"
+            # Значение по умолчанию - "Ответ текстом"
+            return "Ответ текстом"
 
 
 async def save_user_mode(user_id: int, mode: str):
