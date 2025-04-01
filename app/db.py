@@ -25,6 +25,12 @@ async def init_db():
                 response_id TEXT
             )
         """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS response_ids (
+                user_id INTEGER PRIMARY KEY,
+                response_id TEXT
+            )
+        """)
         await db.commit()
 
 
