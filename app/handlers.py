@@ -1,4 +1,3 @@
-import aiofiles
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -67,10 +66,9 @@ async def send_text_message_on_voice(message: Message, bot: Bot):
     await bot.send_chat_action(message.chat.id, action="typing")
     file_link = await bot.get_file(message.voice.file_id)  # type: ignore
     await bot.download_file(file_link.file_path, "voice.ogg")  # type: ignore
-    async with aiofiles.open("voice.ogg", "rb") as f:
-        voice_file = await f.read()
-    answer = await ChatGPT().generate_text_on_voice(
-        user_id=message.from_user.id,  # type: ignore
-        voice=voice_file,  # type: ignore
-    )
+    with open("voice.ogg", "rb") as voice_file:
+        answer = await ChatGPT().generate_text_on_voice(
+            user_id=message.from_user.id,  # type: ignore
+            voice=voice_file,  # type: ignore
+        )
     await message.answer(answer, parse_mode="Markdown")

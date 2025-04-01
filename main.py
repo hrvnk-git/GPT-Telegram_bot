@@ -23,14 +23,15 @@ logger.add(
     level="INFO",
     colorize=True,
     backtrace=True,
-    diagnose=True
+    diagnose=True,
 )
+
 
 # Настройка перехвата стандартных логов Python в loguru
 class InterceptHandler(logging.Handler):
     def emit(self, record):
         # Пропускаем логи самой loguru
-        if record.name.startswith('loguru'):
+        if record.name.startswith("loguru"):
             return
 
         try:
@@ -43,7 +44,10 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
+
 
 # Настраиваем перехват всех логов в loguru
 logging.basicConfig(handlers=[InterceptHandler()], level=logging.DEBUG, force=True)
@@ -51,6 +55,7 @@ for name in logging.root.manager.loggerDict:
     logging_logger = logging.getLogger(name)
     logging_logger.handlers = []
     logging_logger.propagate = True
+
 
 async def main():
     logger.info("Запуск бота...")
@@ -60,6 +65,7 @@ async def main():
     dp.include_router(router)
     logger.success("Бот успешно запущен")
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
