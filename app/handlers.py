@@ -68,7 +68,6 @@ async def send_voice_message_on_voice(message: Message, bot: Bot, user_id: int):
 
 async def send_text_message_on_voice(message: Message, bot: Bot, user_id: int):
     await bot.send_chat_action(message.chat.id, action="typing")
-    user_id = message.from_user.id
     file_link = await bot.get_file(message.voice.file_id)
     await bot.download_file(file_link.file_path, f"{user_id}_voice.ogg")
     with open(f"{user_id}_voice.ogg", "rb") as voice_file:

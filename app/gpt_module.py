@@ -5,8 +5,9 @@ from aiogram.types import FSInputFile
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
-from .db import load_history, save_message
 from config import instructions, prompt
+
+from .db import load_history, save_message
 
 load_dotenv()
 
@@ -23,7 +24,7 @@ class ChatGPT:
         user_history.append({"role": "user", "content": user_text})
         messages = [{"role": "developer", "content": prompt}] + user_history
         completion = await self.client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="o3-mini",
             messages=messages,  # type: ignore
         )
         response_text = str(completion.choices[0].message.content)
