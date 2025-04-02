@@ -5,8 +5,8 @@ FROM python:${PYTHON_VERSION}-slim as base
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 WORKDIR /
-RUN pip install uv && \
-    uv sync
+RUN pip install uv
 USER root
 COPY . .
+RUN uv sync
 CMD uv run main.py
