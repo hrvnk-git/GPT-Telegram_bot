@@ -11,7 +11,7 @@ from app.handlers import router
 
 load_dotenv()
 
-BOT_TOKEN = str(os.getenv("BOT_TOKEN"))
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
 async def main():

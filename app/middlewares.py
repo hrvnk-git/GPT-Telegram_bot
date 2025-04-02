@@ -1,6 +1,5 @@
 import os
 from asyncio import Lock
-from re import A
 from time import monotonic
 from typing import Any, Awaitable, Callable, Dict
 
@@ -12,7 +11,8 @@ load_dotenv()
 
 list_of_users = os.getenv("AUTHORIZED_USER_ID")
 AUTHORIZED_USERS_ID = list_of_users.split(",") if list_of_users else []
-print(AUTHORIZED_USERS_ID)
+# Глобальный Lock, который предотвращает одновременную обработку команд
+processing_lock = Lock()
 
 
 class AccessMiddleware(BaseMiddleware):
@@ -33,10 +33,6 @@ class AccessMiddleware(BaseMiddleware):
                 # Если пользователь не авторизован — не передаём управление хендлеру
                 return
         return await handler(event, data)
-
-
-# Глобальный Lock, который предотвращает одновременную обработку команд
-processing_lock = Lock()
 
 
 class ProcessingLockMiddleware(BaseMiddleware):

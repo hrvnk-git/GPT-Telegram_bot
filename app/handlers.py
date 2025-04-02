@@ -1,16 +1,18 @@
+import asyncio
 import os
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
 from dotenv import load_dotenv
+from loguru import logger
 
-from .db import load_user_mode, save_user_mode
 from .gpt_module import gpt_client
 from .middlewares import AccessMiddleware, ProcessingLockMiddleware, RateLimitMiddleware
 
 load_dotenv()
-BOT_TOKEN = str(os.getenv("BOT_TOKEN"))
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 router = Router()
 router.message.middleware(AccessMiddleware())
@@ -19,77 +21,70 @@ router.message.middleware(RateLimitMiddleware())
 
 
 @router.message(Command("start"))
-async def cmd_start(message: Message):
+async def cmd_start(message: Message) -> None:
     await message.answer(
-        "Привет! Используй /mode для переключения между режимами ответа на голосовые сообщения."
+        "Привет! Я AI-бот, который может отвечать на текстовые и голосовые сообщения, "
+        "а так же могу работать с фото."
     )
-
-
-@router.message(Command("mode"))
-async def cmd_mode(message: Message):
-    user_id = message.from_user.id
-    current_mode = await load_user_mode(user_id)
-    new_mode = "Ответ текстом" if current_mode == "Ответ голосом" else "Ответ голосом"
-    await save_user_mode(user_id, new_mode)
-    await message.answer(f"Режим ответа на голосовые сообщения изменён на: {new_mode}")
 
 
 @router.message(F.text)
-async def any_message(message: Message, bot: Bot):
-    await bot.send_chat_action(message.chat.id, action="typing")
-    answer = await gpt_client.generate_text(
-        user_id=message.from_user.id,
-        user_text=message.text,
-    )
-    # print(answer)
-    await message.answer(answer, parse_mode="Markdown")
+async def any_message(message: Message, bot: Bot) -> None:
+    typing_task = asyncio.create_task(keep_typing(message, bot))
+    try:
+        answer = await gpt_client.generate_text(
+            user_id=message.from_user.id,
+            user_text=message.text,
+        )
+        await message.answer(answer, parse_mode="Markdown")
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        await message.answer("Произошла ошибка при обработке текста.")
+    finally:
+        typing_task.cancel()
 
 
 @router.message(F.photo)
-async def handle_photo(message: Message, bot: Bot):
-    user_id = message.from_user.id
-    message_text = message.caption or None
-    await bot.send_chat_action(message.chat.id, action="typing")
-    photo = await bot.get_file(message.photo[-1].file_id)
-    url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{photo.file_path}"
-    answer = await gpt_client.recieve_photo(user_id, message_text, url)
-    await message.answer(answer)
+async def handle_photo(message: Message, bot: Bot) -> None:
+    typing_task = asyncio.create_task(keep_typing(message, bot))
+    try:
+        user_id = message.from_user.id
+        message_text = message.caption
+
+        photo = await bot.get_file(message.photo[-1].file_id)
+        url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{photo.file_path}"
+        answer = await gpt_client.receive_photo(user_id, message_text, url)
+        await message.answer(answer)
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        await message.answer("Произошла ошибка при обработке фото.")
+    finally:
+        typing_task.cancel()
 
 
 @router.message(F.voice)
-async def handle_voice_message(message: Message, bot: Bot):
-    user_id = message.from_user.id
-    current_mode = await load_user_mode(user_id)
-
-    if current_mode == "Ответ голосом":
-        await send_voice_message_on_voice(message, bot, user_id)
-    else:
-        await send_text_message_on_voice(message, bot, user_id)
-
-
-async def send_voice_message_on_voice(message: Message, bot: Bot, user_id: int):
-    await bot.send_chat_action(message.chat.id, action="record_voice")
-    file_link = await bot.get_file(message.voice.file_id)
-    await bot.download_file(file_link.file_path, f"{user_id}_voice.ogg")
-    with open(f"{user_id}_voice.ogg", "rb") as voice_file:
-        voice, answer = await gpt_client.generate_voice(
-            user_id=user_id,
-            voice=voice_file,
-        )
-    await message.answer_voice(voice)
-    os.remove(f"{user_id}_voice.ogg")
-    os.remove(f"{user_id}_speech.ogg")
-    await message.answer(answer, parse_mode="Markdown")
+async def send_text_message_on_voice(message: Message, bot: Bot) -> None:
+    typing_task = asyncio.create_task(keep_typing(message, bot))
+    try:
+        user_id = message.from_user.id
+        file_link = await bot.get_file(message.voice.file_id)
+        await bot.download_file(file_link.file_path, f"{user_id}_voice.ogg")
+        with open(f"{user_id}_voice.ogg", "rb") as voice_file:
+            answer = await gpt_client.generate_text_on_voice(
+                user_id=user_id,
+                voice=voice_file,
+            )
+        await message.answer(answer, parse_mode="Markdown")
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        await message.answer("Произошла ошибка при обработке голосового сообщения.")
+    finally:
+        typing_task.cancel()
+        os.remove(f"{user_id}_voice.ogg")
 
 
-async def send_text_message_on_voice(message: Message, bot: Bot, user_id: int):
-    await bot.send_chat_action(message.chat.id, action="typing")
-    file_link = await bot.get_file(message.voice.file_id)
-    await bot.download_file(file_link.file_path, f"{user_id}_voice.ogg")
-    with open(f"{user_id}_voice.ogg", "rb") as voice_file:
-        answer = await gpt_client.generate_text_on_voice(
-            user_id=user_id,
-            voice=voice_file,
-        )
-    os.remove(f"{user_id}_voice.ogg")
-    await message.answer(answer, parse_mode="Markdown")
+async def keep_typing(message: Message, bot: Bot) -> None:
+    """Функция для имитации действия "печатает..." в чате."""
+    while True:
+        await bot.send_chat_action(message.chat.id, action="typing")
+        await asyncio.sleep(4)
