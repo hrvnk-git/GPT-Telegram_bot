@@ -23,7 +23,7 @@ class AccessMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         if isinstance(event, Message):
-            if int(event.from_user.id) in [int(uid) for uid in AUTHORIZED_USERS_ID]:
+            if int(event.from_user.id) in [int(uid) for uid in AUTHORIZED_USERS_ID]:  # type: ignore
                 return await handler(event, data)
             else:
                 await event.answer(

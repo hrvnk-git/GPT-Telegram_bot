@@ -2,13 +2,16 @@ import asyncio
 import os
 
 from aiogram import Bot, F, Router
-from aiogram.filters import Command
 from aiogram.types import Message
 from dotenv import load_dotenv
 from loguru import logger
 
-from .gpt_module import gpt_client
-from .middlewares import AccessMiddleware, ProcessingLockMiddleware, RateLimitMiddleware
+from middlewares.middlewares import (
+    AccessMiddleware,
+    ProcessingLockMiddleware,
+    RateLimitMiddleware,
+)
+from utils.gpt_module import gpt_client
 
 load_dotenv()
 
@@ -18,14 +21,6 @@ router = Router()
 router.message.middleware(AccessMiddleware())
 router.message.middleware(ProcessingLockMiddleware())
 router.message.middleware(RateLimitMiddleware())
-
-
-@router.message(Command("start"))
-async def cmd_start(message: Message) -> None:
-    await message.answer(
-        "Привет! Я AI-бот, который может отвечать на текстовые и голосовые сообщения, "
-        "а так же могу работать с фото."
-    )
 
 
 @router.message(F.text)
@@ -65,8 +60,8 @@ async def handle_photo(message: Message, bot: Bot) -> None:
 @router.message(F.voice)
 async def send_text_message_on_voice(message: Message, bot: Bot) -> None:
     typing_task = asyncio.create_task(keep_typing(message, bot))
+    user_id = message.from_user.id
     try:
-        user_id = message.from_user.id
         file_link = await bot.get_file(message.voice.file_id)
         await bot.download_file(file_link.file_path, f"{user_id}_voice.ogg")
         with open(f"{user_id}_voice.ogg", "rb") as voice_file:

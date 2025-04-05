@@ -97,3 +97,9 @@ async def save_response_id(user_id: int, response_id: str):
             (user_id, response_id),
         )
         await db.commit()
+
+
+async def delete_response_id(user_id: int):
+    async with aiosqlite.connect(DB_FILE) as db:
+        await db.execute("DELETE FROM response_ids WHERE user_id = ?", (user_id,))
+        await db.commit()

@@ -4,8 +4,7 @@ from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
 from config import prompt
-
-from .db import load_response_id, save_response_id
+from database.db import load_response_id, save_response_id
 
 load_dotenv()
 

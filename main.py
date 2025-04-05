@@ -6,8 +6,9 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
 
-from app.db import init_db
-from app.handlers import router
+from handlers.commands import router as r1
+from handlers.messages import router as r2
+from database.db import init_db
 
 load_dotenv()
 
@@ -18,7 +19,7 @@ async def main():
     await init_db()
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())
-    dp.include_router(router)
+    dp.include_routers(r1, r2)
     await dp.start_polling(bot)
 
 
