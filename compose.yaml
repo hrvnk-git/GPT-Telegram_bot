@@ -1,5 +1,10 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  free_bot:
+    build: .
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - AUTHORIZED_USER_ID=${AUTHORIZED_USER_ID}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./bot.log:/app/bot.log
+      - ./history.db:/app/history.db
