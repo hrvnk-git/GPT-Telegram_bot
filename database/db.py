@@ -26,9 +26,9 @@ async def init_db():
             )
         """)
         await db.execute("""
-            CREATE TABLE IF NOT EXISTS response_ids (
+            CREATE TABLE IF NOT EXISTS authorized_users (
                 user_id INTEGER PRIMARY KEY,
-                response_id TEXT
+                admin INTEGER DEFAULT 0
             )
         """)
         await db.commit()
@@ -103,3 +103,31 @@ async def delete_response_id(user_id: int):
     async with aiosqlite.connect(DB_FILE) as db:
         await db.execute("DELETE FROM response_ids WHERE user_id = ?", (user_id,))
         await db.commit()
+
+
+async def delete_history(user_id: int):
+    async with aiosqlite.connect(DB_FILE) as db:
+        await db.execute("DELETE FROM message_history WHERE user_id = ?", (user_id,))
+        await db.commit()
+
+
+async def add_authorized_user(user_id: int, admin: int = 0):
+    async with aiosqlite.connect(DB_FILE) as db:
+        await db.execute(
+            "INSERT OR REPLACE INTO authorized_users (user_id, admin) VALUES (?, ?)",
+            (user_id, admin),
+        )
+        await db.commit()
+
+
+async def load_authorized_user(user_id: int):
+    async with aiosqlite.connect(DB_FILE) as db:
+        cursor = await db.execute(
+            "SELECT user_id FROM authorized_users WHERE user_id = ?", (user_id,)
+        )
+        row = await cursor.fetchone()
+        if row:
+            return row[0]
+        else:
+            # Значение по умолчанию - None
+            return None

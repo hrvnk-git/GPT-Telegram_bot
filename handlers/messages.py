@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from middlewares.middlewares import (
-    AccessMiddleware,
+    AuthorizedUserMiddleware,
     ProcessingLockMiddleware,
     RateLimitMiddleware,
 )
@@ -18,7 +18,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 router = Router()
-router.message.middleware(AccessMiddleware())
+router.message.middleware(AuthorizedUserMiddleware())
 router.message.middleware(ProcessingLockMiddleware())
 router.message.middleware(RateLimitMiddleware())
 

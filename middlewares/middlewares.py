@@ -7,6 +7,8 @@ from aiogram import BaseMiddleware
 from aiogram.types import Message, TelegramObject
 from dotenv import load_dotenv
 
+from database.db import load_authorized_user
+
 load_dotenv()
 
 list_of_users = os.getenv("AUTHORIZED_USER_ID")
@@ -15,7 +17,7 @@ AUTHORIZED_USERS_ID = list_of_users.split(",") if list_of_users else []
 processing_lock = Lock()
 
 
-class AccessMiddleware(BaseMiddleware):
+class AuthorizedUserMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
@@ -23,7 +25,9 @@ class AccessMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         if isinstance(event, Message):
-            if int(event.from_user.id) in [int(uid) for uid in AUTHORIZED_USERS_ID]:  # type: ignore
+            user_id = event.from_user.id  # type: ignore
+            authorized_user = await load_authorized_user(user_id)
+            if user_id == authorized_user:
                 return await handler(event, data)
             else:
                 await event.answer(
@@ -32,7 +36,6 @@ class AccessMiddleware(BaseMiddleware):
                 )
                 # Если пользователь не авторизован — не передаём управление хендлеру
                 return
-        return await handler(event, data)
 
 
 class ProcessingLockMiddleware(BaseMiddleware):
