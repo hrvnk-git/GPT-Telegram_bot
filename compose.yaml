@@ -1,5 +1,8 @@
 services:
-  free_bot:
+  gpt_bot:
+    container_name: gpt_bot
+    image: gpt_bot
+    restart: unless-stopped
     build: .
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
